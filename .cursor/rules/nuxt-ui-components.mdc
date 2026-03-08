@@ -1,0 +1,41 @@
+---
+description: Use Nuxt UI components first; use Nuxt UI MCP server for docs and style guide
+globs: apps/frontend/**/*.vue
+alwaysApply: false
+---
+
+# Nuxt UI Components
+
+Use **Nuxt UI** components wherever possible instead of custom HTML or raw Tailwind. This keeps the app consistent, accessible, and aligned with the design system.
+
+## Component-first policy
+
+- Prefer Nuxt UI components over custom markup (e.g. `UButton` over `<button>`, `UInput` over `<input>`, `UCard` over custom cards).
+- Use Nuxt UI layout primitives for structure: `UApp`, `UHeader`, `UMain`, `UFooter`, `USeparator`.
+- Use Iconify icons via the `icon` prop (e.g. `icon="i-lucide-home"`, `icon="i-simple-icons-github"`).
+
+## Using the Nuxt UI MCP server
+
+Before implementing a custom component or guessing API, use the **Nuxt UI MCP server** to find the right component and usage:
+
+1. **Find components** – Use the MCP tools to search by category or name (e.g. form, button, modal) so you pick an existing Nuxt UI component.
+2. **Read docs** – Use the MCP to get the component’s usage, examples, and recommended patterns.
+3. **Check API** – Use the MCP to get props, slots, and events so you use the component correctly.
+
+Relevant MCP actions: list/search components by category, get component documentation and examples, get component metadata (props, slots, events). Prefer these over guessing or copying from external sites.
+
+## Styling and theme
+
+- Rely on Nuxt UI theming via `app.config.ts` (e.g. `ui` config, color mode, theme tokens). Avoid one-off inline styles or arbitrary Tailwind overrides for things the design system already covers.
+- Use Nuxt UI props for variants (`variant`, `color`, `size`) instead of custom classes when the component supports them.
+
+## Example
+
+```vue
+<!-- Prefer Nuxt UI -->
+<UButton icon="i-lucide-plus" variant="solid" color="primary" />
+<UInput v-model="query" placeholder="Search..." />
+
+<!-- Avoid custom-only equivalents when a Nuxt UI component exists -->
+<button class="rounded bg-primary px-4 py-2">...</button>
+```

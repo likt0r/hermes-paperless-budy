@@ -1,0 +1,61 @@
+---
+description: Nuxt and Vue development standards for the frontend app
+globs: apps/frontend/**
+alwaysApply: false
+---
+
+# Nuxt Development Standards
+
+Follow these conventions when working on the frontend app (Nuxt 4, Vue 3, TypeScript, Nuxt UI, Tailwind).
+
+## Code style and structure
+
+- Use **Composition API** with `<script setup>`; avoid Options API.
+- Prefer iteration and small modules over duplication; use composables for shared logic.
+- Use clear names with auxiliary verbs where it helps (e.g. `isLoading`, `hasError`).
+- Order within files: component/export, composables, helpers, static content, types.
+
+## TypeScript
+
+- Use TypeScript everywhere; prefer `type` over `interface`.
+- Avoid enums; use `const` objects or union types instead.
+- Use Vue 3 + TypeScript patterns (`defineComponent`, `PropType` when needed).
+
+## Naming
+
+- **Directories:** lowercase with dashes (e.g. `components/auth-wizard`).
+- **Component files:** PascalCase (e.g. `AuthWizard.vue`, `TemplateMenu.vue`).
+- **Composables:** `use` prefix, camelCase (e.g. `useAuthState.ts`).
+
+## Nuxt specifics
+
+- Rely on **auto-imports**: do not manually import `ref`, `reactive`, `computed`, `useState`, `useRouter`, `useFetch`, etc., when Nuxt provides them.
+- **Routing:** file-based routing under `pages/`.
+- **Composables:** place in `composables/` for app-wide reuse.
+- **Server logic:** use `server/` (e.g. `server/api/`) for API routes and server-only code.
+- **Config:** use `useRuntimeConfig()` for env/runtime config needed on both server and client; use `app.config.ts` for app/theme configuration.
+- **SEO:** use `useHead` and `useSeoMeta` for meta and document head.
+
+## Data fetching
+
+1. **useFetch** – Default for page/component data that benefits from SSR, caching, and reactive URL/key updates.
+2. **$fetch** – For one-off or event-handler requests when SSR/caching is not needed.
+3. **useAsyncData** – When combining multiple requests or you need custom caching/error handling.
+4. Use `server: false` when data must only load on the client; use `lazy: true` to defer non-critical fetches until after first paint.
+
+## UI and styling
+
+- Use **Nuxt UI** and **Tailwind CSS** for UI and layout; prefer Nuxt UI components when available (see the Nuxt UI components rule).
+- Use a **mobile-first** approach with Tailwind breakpoints (`sm:`, `md:`, etc.).
+
+## Performance
+
+- Use Nuxt’s built-in optimizations (lazy routes, code splitting).
+- Use `Suspense` for async component boundaries where it helps.
+- Lazy-load heavy or below-the-fold components when appropriate.
+- Optimize images (e.g. WebP, dimensions, lazy loading) and aim for good Web Vitals (LCP, CLS, FID).
+
+## References
+
+- Follow official [Nuxt](https://nuxt.com) and [Vue](https://vuejs.org) docs for data fetching, rendering, and routing.
+- Use VueUse for common composables and utilities where it fits.
