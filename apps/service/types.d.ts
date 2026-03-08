@@ -7,9 +7,5 @@ import { MotiaStream } from 'motia'
 declare module 'motia' {
   interface Streams {}
 
-  interface Enqueues {
-    'ticket::sla-breached': unknown
-    'ticket::triaged': { ticketId: string; assignee: string; priority: string; title: string }
-    'ticket::created': unknown
-  }
+  interface Enqueues {}
 }

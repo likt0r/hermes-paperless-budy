@@ -21,7 +21,7 @@ modules:
     config:
       port: 3111
       host: 127.0.0.1
-      default_timeout: 30000
+      default_timeout: 120000
       concurrency_request_limit: 1024
       cors:
         allowed_origins:
