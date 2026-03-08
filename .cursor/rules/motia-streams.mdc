@@ -1,0 +1,100 @@
+---
+description: Motia real-time streams -- definitions, methods, subscriptions, and frontend integration
+globs: "**/*.stream.ts, **/*.step.ts"
+alwaysApply: false
+---
+
+# Motia Streams
+
+Streams push live updates from backend to connected clients without polling. Define streams in `*.stream.ts` files.
+
+## Defining a Stream
+
+```typescript
+// src/my-entity.stream.ts
+import { StreamConfig } from 'motia'
+import { z } from 'zod'
+
+export const config: StreamConfig = {
+  name: 'myEntity',
+  schema: z.object({
+    id: z.string(),
+    status: z.string(),
+    updatedAt: z.string(),
+  }),
+  baseConfig: { storageType: 'default' },
+}
+```
+
+Motia auto-discovers the stream and exposes it as `ctx.streams.myEntity` in all step handlers.
+
+## Stream Methods (in step handlers)
+
+```typescript
+await ctx.streams.myEntity.set(groupId, id, data)       // Create/update (pushes to clients)
+await ctx.streams.myEntity.get(groupId, id)              // Get single item
+await ctx.streams.myEntity.delete(groupId, id)           // Remove item
+await ctx.streams.myEntity.getGroup(groupId)             // Get all items in group
+await ctx.streams.myEntity.update(groupId, id, ops)      // Atomic update with UpdateOp[]
+await ctx.streams.myEntity.send(channel, event)          // Ephemeral event (no persistence)
+```
+
+Every `set()` call automatically pushes updates to all subscribed clients.
+
+## Ephemeral Events
+
+For transient data like typing indicators that shouldn't be persisted:
+
+```typescript
+await ctx.streams.chat.send(
+  { groupId: channelId },
+  { type: 'typing', data: { userId: 'user-123', isTyping: true } }
+)
+```
+
+## Access Control
+
+```typescript
+export const config: StreamConfig = {
+  name: 'myEntity',
+  schema: mySchema,
+  baseConfig: { storageType: 'default' },
+  canAccess: ({ groupId, id }, authContext) => {
+    return authContext?.projectIds.includes(groupId) ?? false
+  },
+  onJoin: async (subscription, context, authContext) => {
+    if (!authContext?.userId) return { unauthorized: true }
+    return { unauthorized: false }
+  },
+  onLeave: async (subscription, context, authContext) => {
+    context.logger.info('Client left', { subscription })
+  },
+}
+```
+
+## Stream Triggers in Steps
+
+Steps can react to stream changes:
+
+```typescript
+triggers: [{
+  type: 'stream',
+  streamName: 'myEntity',
+  groupId: 'data',
+  condition: (input) => input.event.type === 'update',
+}]
+```
+
+## Frontend React Integration
+
+```typescript
+import { MotiaStreamProvider, useStreamGroup } from 'motia/stream-client-react'
+
+// Wrap app
+<MotiaStreamProvider address="ws://localhost:3000" authToken={token}>
+  <App />
+</MotiaStreamProvider>
+
+// Subscribe to a group
+const { data } = useStreamGroup<MyEntity>({ groupId: 'inbox', streamName: 'myEntity' })
+```

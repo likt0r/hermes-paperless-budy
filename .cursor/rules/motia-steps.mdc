@@ -1,0 +1,93 @@
+---
+description: Motia step creation patterns -- triggers, handlers, config, and context
+globs: **/*.step.ts
+alwaysApply: false
+---
+
+# Motia Steps
+
+Every step file exports two things: `config` (when/how it runs) and `handler` (what it does).
+
+## Step Config
+
+```typescript
+import { type Handlers, type StepConfig } from 'motia'
+import { z } from 'zod'
+
+export const config = {
+  name: 'UniqueStepName',
+  description: 'What this step does',
+  triggers: [/* at least one trigger */],
+  enqueues: ['topic.name'],       // topics this step can emit
+  flows: ['my-flow'],             // flow grouping for visualization
+  middleware: [],                  // optional, HTTP triggers only
+} as const satisfies StepConfig
+```
+
+## Trigger Types
+
+| Type | Config | Use Case |
+|------|--------|----------|
+| `http` | `{ type: 'http', path: '/route', method: 'GET' }` | REST APIs, webhooks |
+| `queue` | `{ type: 'queue', topic: 'event.name', input: z.object({...}) }` | Background jobs, workflows |
+| `cron` | `{ type: 'cron', expression: '*/30 * * * * *' }` | Scheduled tasks |
+| `state` | `{ type: 'state', condition: (input) => boolean }` | React to state changes |
+| `stream` | `{ type: 'stream', streamName: 'name', groupId: 'g' }` | React to stream events |
+
+## Handler Signatures
+
+```typescript
+// HTTP trigger -- returns response
+export const handler: Handlers<typeof config> = async (req, ctx) => {
+  return { status: 200, body: { data: 'value' } }
+}
+
+// Queue/Cron trigger -- no return needed
+export const handler: Handlers<typeof config> = async (input, ctx) => {
+  await ctx.enqueue({ topic: 'next.step', data: { key: 'value' } })
+}
+```
+
+## Context Object (`ctx`)
+
+- `ctx.logger` -- structured logging: `.info()`, `.warn()`, `.error()`
+- `ctx.enqueue({ topic, data })` -- send messages to queue subscribers
+- `ctx.state` -- persistent key-value storage (`.set()`, `.get()`, `.list()`, `.delete()`, `.clear()`, `.update()`)
+- `ctx.streams` -- real-time stream access (e.g. `ctx.streams.myStream.set(...)`)
+- `ctx.traceId` -- unique trace ID for the current execution
+- `ctx.getData()` -- extract data payload regardless of trigger type
+- `ctx.match({ http: fn, queue: fn, cron: fn })` -- pattern match on trigger type
+
+## Multi-Trigger Steps
+
+A step can have multiple triggers. Use `ctx.match()` to handle each differently:
+
+```typescript
+export const handler: Handlers<typeof config> = async (input, ctx) => {
+  return ctx.match({
+    http: async (req) => {
+      return { status: 200, body: { ok: true } }
+    },
+    queue: async (data) => {
+      ctx.logger.info('Processing from queue', data)
+    },
+    cron: async () => {
+      ctx.logger.info('Scheduled run')
+    },
+  })
+}
+```
+
+## Queue Infrastructure Config
+
+```typescript
+triggers: [{
+  type: 'queue',
+  topic: 'email.send',
+  input: z.object({ to: z.string() }),
+  infrastructure: {
+    handler: { timeout: 10 },
+    queue: { maxRetries: 5, visibilityTimeout: 60 }
+  }
+}]
+```

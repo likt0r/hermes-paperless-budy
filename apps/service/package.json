@@ -1,0 +1,21 @@
+{
+  "name": "@repo/service",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "iii -c iii-config.yaml",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "motia": "1.0.0-rc.24",
+    "zod": "^4.1.13"
+  },
+  "devDependencies": {
+    "@repo/eslint-config": "workspace:*",
+    "@repo/typescript-config": "workspace:*",
+    "@types/node": "^24.10.1",
+    "eslint": "^9.0.0",
+    "typescript": "^5.9.3"
+  }
+}

@@ -1,0 +1,89 @@
+---
+description: iii-config.yaml modules, adapters, environment variables, and infrastructure configuration
+globs: "**/iii-config.yaml"
+alwaysApply: false
+---
+
+# Motia Configuration (iii-config.yaml)
+
+All infrastructure is configured via `iii-config.yaml` modules. The old `motia.config.ts` with adapters/plugins is **removed**.
+
+## Module Structure
+
+```yaml
+modules:
+  - class: modules::module_type::ModuleName
+    config:
+      key: value
+      nested:
+        key: ${ENV_VAR:default_value}
+```
+
+## Available Modules
+
+| Module | Class | Purpose |
+|--------|-------|---------|
+| REST API | `modules::api::RestApiModule` | HTTP endpoints (port, CORS, timeouts) |
+| Queue | `modules::queue::QueueModule` | Message queuing |
+| State | `modules::state::StateModule` | Persistent key-value storage |
+| Stream | `modules::stream::StreamModule` | Real-time data streaming |
+| PubSub | `modules::pubsub::PubSubModule` | Publish/subscribe messaging |
+| Cron | `modules::cron::CronModule` | Scheduled tasks |
+| OTEL | `modules::observability::OtelModule` | Traces, metrics, logs |
+| Exec | `modules::shell::ExecModule` | Shell command execution, file watching |
+
+## Adapter Swapping (Local vs Production)
+
+| Module | Local Adapter | Production Adapter |
+|--------|--------------|-------------------|
+| Queue | `BuiltinQueueAdapter` | `RedisAdapter`, `RabbitMQAdapter` |
+| State | `KvStore` (file_based) | `RedisAdapter` |
+| Stream | `KvStore` (file_based) | `RedisAdapter` |
+| Cron | `KvCronAdapter` | `RedisCronAdapter` |
+| PubSub | `LocalAdapter` | `RedisAdapter` |
+
+### Local (file-based)
+
+```yaml
+- class: modules::state::StateModule
+  config:
+    adapter:
+      class: modules::state::adapters::KvStore
+      config:
+        store_method: file_based
+        file_path: ./data/state_store.db
+```
+
+### Production (Redis)
+
+```yaml
+- class: modules::state::StateModule
+  config:
+    adapter:
+      class: modules::state::adapters::RedisAdapter
+      config:
+        redis_url: ${REDIS_URL:redis://localhost:6379}
+```
+
+## Environment Variable Interpolation
+
+Use `${VAR_NAME:default_value}` in any YAML value. The value is read from the environment or `.env` file at project root.
+
+```yaml
+port: ${API_PORT:3111}
+redis_url: ${REDIS_URL:redis://localhost:6379}
+enabled: ${OTEL_ENABLED:true}
+```
+
+## Environment Variables in Steps
+
+- **TypeScript:** `process.env.MY_VAR`
+- **Python:** `os.environ.get('MY_VAR')`
+
+Store secrets in `.env` (never commit):
+
+```env
+OPENAI_API_KEY=sk-your-key
+DATABASE_URL=postgresql://user:pass@localhost:5432/db
+REDIS_URL=redis://localhost:6379
+```

@@ -1,0 +1,121 @@
+---
+description: Motia state management -- persistent key-value storage, atomic updates, and state triggers
+globs: **/*.step.ts
+alwaysApply: false
+---
+
+# Motia State Management
+
+State is persistent key-value storage organized into groups. Available via `ctx.state` in all step handlers.
+
+## Core Methods
+
+```typescript
+await ctx.state.set(groupId, key, value)    // Store item, returns { new_value, old_value }
+await ctx.state.get(groupId, key)           // Get item (null if not found)
+await ctx.state.list(groupId)               // Get all items in a group as array
+await ctx.state.delete(groupId, key)        // Remove item
+await ctx.state.clear(groupId)              // Remove all items in group
+await ctx.state.update(groupId, key, ops)   // Atomic update with UpdateOp[]
+```
+
+## Data Organization
+
+State uses a `groupId` + `key` hierarchy (like folders + files):
+
+```typescript
+// Group: 'tickets', Key: ticketId
+await ctx.state.set('tickets', ticketId, { title, status: 'open', priority })
+const ticket = await ctx.state.get('tickets', ticketId)
+const allTickets = await ctx.state.list('tickets')
+```
+
+## Atomic Updates (ALWAYS prefer over get-then-set)
+
+**Always use `update()` instead of the get-then-set pattern.** The traditional `get()` -> modify -> `set()` pattern causes race conditions when multiple steps access the same data concurrently. One update will be silently lost. `update()` applies all operations atomically.
+
+```typescript
+// BAD -- race condition when multiple steps run concurrently
+const order = await ctx.state.get('orders', orderId)
+order.completedSteps += 1
+order.status = 'progress'
+await ctx.state.set('orders', orderId, order)
+
+// GOOD -- atomic, no data loss
+await ctx.state.update<Order>('orders', orderId, [
+  { type: 'increment', path: 'completedSteps', by: 1 },
+  { type: 'set', path: 'status', value: 'progress' },
+])
+```
+
+Returns `{ new_value, old_value }` -- same as `state.set()`.
+
+| Op Type | Fields | Description |
+|---------|--------|-------------|
+| `set` | `path`, `value` | Set a field to a specific value |
+| `merge` | `path?`, `value` | Shallow merge object into existing (omit `path` for root merge) |
+| `increment` | `path`, `by` | Add to numeric field |
+| `decrement` | `path`, `by` | Subtract from numeric field |
+| `remove` | `path` | Delete a field entirely |
+
+### Common Patterns
+
+```typescript
+// Counter tracking
+await ctx.state.update('metrics', 'api-calls', [
+  { type: 'increment', path: 'total', by: 1 },
+  { type: 'set', path: 'lastCall', value: new Date().toISOString() },
+])
+
+// Status transitions
+await ctx.state.update('orders', orderId, [
+  { type: 'set', path: 'status', value: 'completed' },
+  { type: 'set', path: 'completedAt', value: new Date().toISOString() },
+  { type: 'remove', path: 'processingData' },
+])
+
+// Parallel step completion (combine with state triggers for parallel-then-merge)
+await ctx.state.update('tasks', taskId, [
+  { type: 'increment', path: 'completedSteps', by: 1 },
+  { type: 'merge', path: 'results', value: { [stepName]: result } },
+])
+```
+
+### Python
+
+```python
+await context.state.update("orders", order_id, [
+    {"type": "increment", "path": "completedSteps", "by": 1},
+    {"type": "set", "path": "status", "value": "shipped"},
+])
+```
+
+The same `UpdateOp` types also work on streams via `ctx.streams.<name>.update()`.
+
+## State Triggers
+
+Steps can react to state changes automatically:
+
+```typescript
+export const config = {
+  name: 'OnTaskComplete',
+  triggers: [{
+    type: 'state',
+    condition: (input) => {
+      if (!input.new_value) return false
+      return input.group_id === 'tasks'
+        && input.new_value.completedSteps === input.new_value.totalSteps
+    },
+  }],
+  enqueues: [],
+  flows: ['task-flow'],
+} as const satisfies StepConfig
+```
+
+## When to Use State
+
+- Building up results across steps in a workflow
+- Sharing data between steps (e.g., ticket data)
+- Temporary workflow data and counters
+
+Prefer a database for large/persistent datasets, Streams for real-time client updates, and S3/storage for files.

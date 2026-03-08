@@ -1,0 +1,73 @@
+---
+description: Motia flow grouping, virtual connections, and NOOP steps for visualization
+globs: **/*.step.ts
+alwaysApply: false
+---
+
+# Motia Flows
+
+Flows group related steps together for visualization in the iii console. They are defined in the step config's `flows` array.
+
+## Basic Usage
+
+```typescript
+export const config = {
+  name: 'CreateTicket',
+  triggers: [{ type: 'http', path: '/tickets', method: 'POST' }],
+  enqueues: ['ticket::created'],
+  flows: ['support-ticket-flow'],
+} as const satisfies StepConfig
+```
+
+Steps sharing the same flow name appear as a connected workflow in the console.
+
+## Multiple Flows
+
+A step can belong to multiple flows:
+
+```typescript
+flows: ['support-ticket-flow', 'customer-notifications'],
+```
+
+## Virtual Connections
+
+Use `virtualEnqueues` and `virtualSubscribes` for visualization-only connections (no actual events):
+
+```typescript
+export const config = {
+  name: 'CreateResource',
+  triggers: [{ type: 'http', path: '/resources', method: 'POST' }],
+  enqueues: [],
+  virtualEnqueues: ['approval.required'],
+  flows: ['resource-management'],
+} as const satisfies StepConfig
+```
+
+## Labels on Virtual Connections
+
+```typescript
+virtualEnqueues: [
+  { topic: 'email-sent', label: 'Email delivered' },
+  { topic: 'email-failed', label: 'Failed to send', conditional: true },
+],
+```
+
+## NOOP Steps
+
+NOOP steps are visualization-only nodes -- they don't run code:
+
+```typescript
+import { NoopConfig } from 'motia'
+
+export const config: NoopConfig = {
+  type: 'noop',
+  name: 'ApprovalGate',
+  virtualEnqueues: ['approved'],
+  virtualSubscribes: ['approval.required'],
+  flows: ['resource-management'],
+}
+```
+
+## Steps Without Flows
+
+Steps work fine without flows -- they just won't appear in the console flow diagrams.

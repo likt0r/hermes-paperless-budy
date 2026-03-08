@@ -1,0 +1,42 @@
+---
+description: Motia project structure, conventions, and framework overview
+alwaysApply: true
+---
+
+# Motia Project Overview
+
+This is a Motia project. Motia unifies APIs, background jobs, workflows, AI agents, streaming, and observability into one runtime using a single primitive: **Steps**.
+
+## Project Structure
+
+```
+src/                    # All steps and streams live here (auto-discovered)
+  *.step.ts             # TypeScript steps
+  *_step.py             # Python steps
+  *.stream.ts           # Stream definitions
+iii-config.yaml         # Infrastructure config (modules, adapters)
+package.json            # Must have "type": "module"
+tsconfig.json           # TypeScript config
+.env                    # Environment variables (not committed)
+```
+
+## Auto-Discovery
+
+Motia scans `src/` recursively and registers files matching:
+- `.step.ts` / `.step.js` / `_step.py` -- Step files (must export `config` + `handler`)
+- `.stream.ts` -- Stream definitions (must export `config: StreamConfig`)
+
+Steps can be nested at any depth within `src/`.
+
+## Key Dependencies
+
+- `motia` -- core framework (imports: `type Handlers`, `type StepConfig`, `StreamConfig`, `NoopConfig`, `ApiMiddleware`)
+- `zod` -- schema validation for request bodies, queue inputs, and stream schemas
+
+## Configuration
+
+Infrastructure is configured via `iii-config.yaml` modules, NOT `motia.config.ts` (removed). Adapters and plugins are configured through iii modules. Use `${VAR:default}` syntax for env variable interpolation in YAML.
+
+## Multi-Language
+
+TypeScript (`.step.ts`), JavaScript (`.step.js`), and Python (`_step.py`) steps coexist in the same project. Each runtime is managed independently by the iii engine.

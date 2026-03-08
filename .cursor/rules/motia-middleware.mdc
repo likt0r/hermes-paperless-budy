@@ -1,0 +1,87 @@
+---
+description: Motia HTTP middleware patterns -- auth, error handling, response modification
+globs: "**/*.step.ts, **/middlewares/**"
+alwaysApply: false
+---
+
+# Motia Middleware
+
+Middleware runs before HTTP handlers. It can short-circuit requests, modify responses, or pass data to handlers.
+
+## Signature
+
+```typescript
+import { ApiMiddleware } from 'motia'
+
+const myMiddleware: ApiMiddleware = async (req, ctx, next) => {
+  // Before handler
+  const response = await next()  // Call handler (or next middleware)
+  // After handler
+  return response
+}
+```
+
+If you don't call `next()`, the request stops and your return value is sent as the response.
+
+## Adding to Steps
+
+```typescript
+export const config = {
+  name: 'ProtectedEndpoint',
+  triggers: [{ type: 'http', path: '/protected', method: 'GET' }],
+  enqueues: [],
+  middleware: [authMiddleware, loggingMiddleware],  // Runs in array order
+  flows: ['my-flow'],
+} as const satisfies StepConfig
+```
+
+## Auth Middleware
+
+```typescript
+const authMiddleware: ApiMiddleware = async (req, ctx, next) => {
+  if (!req.headers.authorization) {
+    return { status: 401, body: { error: 'Unauthorized' } }
+  }
+  return next()
+}
+```
+
+## Error Handling
+
+```typescript
+const errorMiddleware: ApiMiddleware = async (req, ctx, next) => {
+  try {
+    return await next()
+  } catch (error) {
+    ctx.logger.error('Unhandled error', { error })
+    return { status: 500, body: { error: 'Internal server error' } }
+  }
+}
+```
+
+## Passing Data to Handlers
+
+Extend the request type in `api.d.ts`:
+
+```typescript
+import 'motia'
+declare module 'motia' {
+  interface ApiRequest {
+    user?: { id: string; role: string }
+  }
+}
+```
+
+Then set in middleware: `req.user = { id: '123', role: 'admin' }` and read in handler: `req.user`.
+
+## Shared Middleware
+
+Create reusable middleware in a separate file and import across steps:
+
+```typescript
+// src/middlewares/core.middleware.ts
+export const coreMiddleware: ApiMiddleware = async (req, ctx, next) => { /* ... */ }
+
+// src/my-endpoint.step.ts
+import { coreMiddleware } from './middlewares/core.middleware'
+```
