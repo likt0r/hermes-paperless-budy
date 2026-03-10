@@ -73,5 +73,5 @@ modules:
       watch:
         - src/**/*.ts
       exec:
-        - npx motia dev
-        - node dist/index-dev.js
+        - bun motia dev
+        - bun dist/index-dev.js

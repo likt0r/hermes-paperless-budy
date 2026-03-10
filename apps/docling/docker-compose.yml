@@ -5,3 +5,9 @@ services:
       - "5001:5001"
     environment:
       - DOCLING_SERVE_ENABLE_UI=1
+      - UVICORN_WORKERS=1
+    volumes:
+      - docling-models:/opt/app-root/src/.cache
+
+volumes:
+  docling-models:
