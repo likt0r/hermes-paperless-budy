@@ -14,7 +14,7 @@ const metadataSchema = z.object({
 export const config: StreamConfig = {
   name: 'extraction',
   schema: z.object({
-    status: z.enum(['parsed', 'summarizing', 'summarized', 'extracting', 'done', 'error']),
+    status: z.enum(['parsed', 'summarizing', 'summarized', 'extracting', 'done', 'updating', 'updated', 'error']),
     error: z.string().optional(),
     summary: z.string().optional(),
     metadata: metadataSchema.optional()

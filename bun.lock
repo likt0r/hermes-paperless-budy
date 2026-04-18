@@ -19,7 +19,7 @@
       "dependencies": {
         "@iconify-json/lucide": "^1.2.102",
         "@iconify-json/simple-icons": "^1.2.78",
-        "@motiadev/stream-client": "^0.17.14-beta.196",
+        "@motiadev/stream-client-browser": "^0.17.14-beta.196",
         "@nuxt/ui": "^4.6.1",
         "nuxt": "^4.4.2",
         "tailwindcss": "^4.2.2",
@@ -296,6 +296,8 @@
     "@mapbox/node-pre-gyp": ["@mapbox/node-pre-gyp@2.0.3", "", { "dependencies": { "consola": "^3.2.3", "detect-libc": "^2.0.0", "https-proxy-agent": "^7.0.5", "node-fetch": "^2.6.7", "nopt": "^8.0.0", "semver": "^7.5.3", "tar": "^7.4.0" }, "bin": { "node-pre-gyp": "bin/node-pre-gyp" } }, "sha512-uwPAhccfFJlsfCxMYTwOdVfOz3xqyj8xYL3zJj8f0pb30tLohnnFPhLuqp4/qoEz8sNxe4SESZedcBojRefIzg=="],
 
     "@motiadev/stream-client": ["@motiadev/stream-client@0.17.14-beta.196", "", { "dependencies": { "uuid": "^13.0.0" } }, "sha512-+P/Dpl6WndLi+OgW09hRNX2fLLfReh7EY9UQvbv9AMvpU/TxN2SkuJ4EBiX0CnMFquALs1MTtbi1HrlcVvZpgA=="],
+
+    "@motiadev/stream-client-browser": ["@motiadev/stream-client-browser@0.17.14-beta.196", "", { "dependencies": { "@motiadev/stream-client": "0.17.14-beta.196", "uuid": "^13.0.0" } }, "sha512-X2isevw/Jg7KALDa7MjWBQqWYvgyWdIqHgL4X1k5bX+nUDgeEYXk20H0sPpTRA5z37uXwoS9jqpFIFgIzpLm9A=="],
 
     "@napi-rs/wasm-runtime": ["@napi-rs/wasm-runtime@1.1.1", "", { "dependencies": { "@emnapi/core": "^1.7.1", "@emnapi/runtime": "^1.7.1", "@tybys/wasm-util": "^0.10.1" } }, "sha512-p64ah1M1ld8xjWv3qbvFwHiFVWrq1yFvV4f7w+mzaqiR4IlSgkqhcRdHwsGgomwzBH51sRY4NEowLxnaBjcW/A=="],
 

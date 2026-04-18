@@ -3,12 +3,12 @@ import path from 'node:path'
 import { config as loadEnv } from 'dotenv'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-loadEnv({ path: path.resolve(__dirname, '..', '.env') })
+loadEnv({ path: path.resolve(__dirname, '..', '..', '..', '.env') })
 
 import type { Handlers, StepConfig } from 'motia'
 import { z } from 'zod'
-import { paperlessClient } from './services/paperless.service.js'
-import type { ExtractedMetadata } from './services/metadata-extractor.js'
+import { paperlessClient } from '../../services/paperless.service.js'
+import type { ExtractedMetadata } from '../../services/metadata-extractor.js'
 
 const metadataExtractedInput = z.object({
   jobId: z.string(),

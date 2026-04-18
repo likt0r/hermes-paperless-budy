@@ -93,7 +93,7 @@
           </UCard>
 
           <UCard
-            v-if="extractionStatus && extractionStatus !== 'parsed' && extractionStatus !== 'done'"
+            v-if="extractionStatus && !['parsed', 'done', 'updated', 'error'].includes(extractionStatus)"
             class="border-primary-500/30 border-2 border-dashed"
           >
             <div class="flex flex-col items-center justify-center gap-4 py-6">
@@ -114,8 +114,23 @@
             icon="i-lucide-alert-circle"
           />
 
+          <UCard v-if="extractionSummary">
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-file-text"
+                  class="size-5"
+                />
+                <span>Document summary</span>
+              </div>
+            </template>
+            <p class="text-sm leading-relaxed">
+              {{ extractionSummary }}
+            </p>
+          </UCard>
+
           <UCard
-            v-if="extractionMetadata && extractionStatus === 'done'"
+            v-if="extractionMetadata"
           >
             <template #header>
               <div class="flex items-center gap-2">
@@ -242,7 +257,7 @@ const error = ref<string | null>(null)
 const result = ref<string | null>(null)
 const jobId = ref<string | null>(null)
 
-const { status: extractionStatus, metadata: extractionMetadata, error: extractionError } = useExtractionStream(jobId)
+const { status: extractionStatus, metadata: extractionMetadata, summary: extractionSummary, error: extractionError } = useExtractionStream(jobId)
 
 const extractionStatusLabel = computed(() => {
   switch (extractionStatus.value) {
@@ -252,6 +267,10 @@ const extractionStatusLabel = computed(() => {
       return 'Summary ready, extracting metadata…'
     case 'extracting':
       return 'Extracting metadata…'
+    case 'updating':
+      return 'Updating Paperless document…'
+    case 'updated':
+      return 'Paperless document updated.'
     default:
       return 'Processing…'
   }

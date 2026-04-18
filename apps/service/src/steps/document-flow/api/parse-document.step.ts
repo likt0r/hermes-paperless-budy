@@ -3,7 +3,7 @@ import path from 'node:path'
 import { config as loadEnv } from 'dotenv'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
-loadEnv({ path: path.resolve(__dirname, '..', '.env') })
+loadEnv({ path: path.resolve(__dirname, '..', '..', '..', '..', '.env') })
 
 import type { Handlers, StepConfig } from 'motia'
 import { z } from 'zod'
@@ -119,6 +119,6 @@ export const handler: Handlers<typeof config> = async (request, { logger, state,
 
   return {
     status: 200,
-    body: { markdown, jobId, metadata: { title: 'Test', summary: 'Test' } },
+    body: { markdown, jobId },
   }
 }
