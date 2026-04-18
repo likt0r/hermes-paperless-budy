@@ -56,14 +56,14 @@ export type {
 } from './types/document.js'
 
 // Overload signatures for client.documents.get — preserves type narrowing via resolve flag
-interface DocumentsGetOverloads {
+export interface DocumentsGetOverloads {
   (id: number, options: { resolve: true }): Promise<DocumentResolved>
   <K extends keyof DocumentRaw>(id: number, options: { resolve?: false; select: K[] }): Promise<Pick<DocumentRaw, K>>
   (id: number, options?: { resolve?: false; select?: undefined }): Promise<DocumentRaw>
 }
 
 // Overload signatures for client.documents.list — preserves type narrowing via select
-interface DocumentsListOverloads {
+export interface DocumentsListOverloads {
   <K extends keyof DocumentRaw>(filters: DocumentFilters | undefined, options: { select: K[] }): Promise<PaginatedResponse<Pick<DocumentRaw, K>>>
   (filters?: DocumentFilters, options?: { select?: undefined }): Promise<PaginatedResponse<DocumentRaw>>
 }

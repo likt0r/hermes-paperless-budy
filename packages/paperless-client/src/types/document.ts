@@ -69,9 +69,16 @@ export interface DocumentUploadPayload {
   created?: string
 }
 
-export type DocumentPatch = Partial<
-  Pick<DocumentRaw, 'title' | 'correspondent' | 'document_type' | 'tags' | 'custom_fields' | 'created' | 'archive_serial_number'>
->
+// Write format differs from read: tags accepts IDs, not full Tag objects
+export interface DocumentPatch {
+  title?: string
+  correspondent?: number | null
+  document_type?: number | null
+  tags?: number[]
+  custom_fields?: CustomFieldValue[]
+  created?: string
+  archive_serial_number?: number | null
+}
 
 export interface BulkEditPayload {
   documents: number[]

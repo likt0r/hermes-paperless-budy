@@ -92,6 +92,118 @@
             </div>
           </UCard>
 
+          <UCard
+            v-if="extractionStatus && extractionStatus !== 'parsed' && extractionStatus !== 'done'"
+            class="border-primary-500/30 border-2 border-dashed"
+          >
+            <div class="flex flex-col items-center justify-center gap-4 py-6">
+              <UIcon
+                name="i-lucide-loader-circle"
+                class="size-8 text-primary animate-spin"
+              />
+              <p class="text-muted text-center">
+                {{ extractionStatusLabel }}
+              </p>
+            </div>
+          </UCard>
+
+          <UAlert
+            v-if="extractionError"
+            color="error"
+            :title="extractionError"
+            icon="i-lucide-alert-circle"
+          />
+
+          <UCard
+            v-if="extractionMetadata && extractionStatus === 'done'"
+          >
+            <template #header>
+              <div class="flex items-center gap-2">
+                <UIcon
+                  name="i-lucide-tags"
+                  class="size-5"
+                />
+                <span>Extracted metadata</span>
+              </div>
+            </template>
+            <div class="space-y-4">
+              <div v-if="extractionMetadata.title">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Title
+                </p>
+                <p class="font-medium">
+                  {{ extractionMetadata.title }}
+                </p>
+              </div>
+              <div v-if="extractionMetadata.summary">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Summary
+                </p>
+                <p class="text-sm">
+                  {{ extractionMetadata.summary }}
+                </p>
+              </div>
+              <div v-if="extractionMetadata.documentType">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Document type
+                </p>
+                <UBadge
+                  color="primary"
+                  variant="subtle"
+                  size="sm"
+                >
+                  {{ extractionMetadata.documentType }}
+                </UBadge>
+              </div>
+              <div v-if="extractionMetadata.correspondent">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Correspondent
+                </p>
+                <div class="flex items-center gap-2">
+                  <UIcon
+                    name="i-lucide-user"
+                    class="size-4"
+                  />
+                  <span>{{ extractionMetadata.correspondent }}</span>
+                </div>
+              </div>
+              <div v-if="extractionMetadata.documentDate">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Document date
+                </p>
+                <span>{{ formatDate(extractionMetadata.documentDate) }}</span>
+              </div>
+              <div v-if="extractionMetadata.language">
+                <p class="text-xs text-muted uppercase tracking-wider mb-1">
+                  Language
+                </p>
+                <UBadge
+                  color="neutral"
+                  variant="subtle"
+                  size="sm"
+                >
+                  {{ extractionMetadata.language }}
+                </UBadge>
+              </div>
+              <div v-if="extractionMetadata.tags?.length">
+                <p class="text-xs text-muted uppercase tracking-wider mb-2">
+                  Tags
+                </p>
+                <div class="flex flex-wrap gap-2">
+                  <UBadge
+                    v-for="tag in extractionMetadata.tags"
+                    :key="tag"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                  >
+                    {{ tag }}
+                  </UBadge>
+                </div>
+              </div>
+            </div>
+          </UCard>
+
           <UCard v-if="result !== null && !loading">
             <template #header>
               <div class="flex items-center justify-between gap-2 flex-wrap">
@@ -128,6 +240,22 @@ const selectedFile = ref<File | null>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
 const result = ref<string | null>(null)
+const jobId = ref<string | null>(null)
+
+const { status: extractionStatus, metadata: extractionMetadata, error: extractionError } = useExtractionStream(jobId)
+
+const extractionStatusLabel = computed(() => {
+  switch (extractionStatus.value) {
+    case 'summarizing':
+      return 'Building summary…'
+    case 'summarized':
+      return 'Summary ready, extracting metadata…'
+    case 'extracting':
+      return 'Extracting metadata…'
+    default:
+      return 'Processing…'
+  }
+})
 
 const PARSE_TIMEOUT_MS = 120_000
 
@@ -144,10 +272,20 @@ function fileToBase64(file: File): Promise<string> {
   })
 }
 
+function formatDate(iso: string): string {
+  try {
+    const d = new Date(iso)
+    return d.toLocaleDateString('de-DE', { year: 'numeric', month: 'short', day: 'numeric' })
+  } catch {
+    return iso
+  }
+}
+
 function onFileSelected() {
   error.value = null
   if (result.value !== null) {
     result.value = null
+    jobId.value = null
   }
 }
 
@@ -158,6 +296,7 @@ async function parsePdf() {
   loading.value = true
   error.value = null
   result.value = null
+  jobId.value = null
 
   try {
     const base64 = await fileToBase64(file)
@@ -172,7 +311,11 @@ async function parsePdf() {
     })
     clearTimeout(timeoutId)
 
-    const data = (await res.json().catch(() => ({}))) as { markdown?: string, error?: string }
+    const data = (await res.json().catch(() => ({}))) as {
+      markdown?: string
+      jobId?: string
+      error?: string
+    }
 
     if (!res.ok) {
       error.value = data.error ?? `Request failed (${res.status})`
@@ -180,6 +323,7 @@ async function parsePdf() {
     }
 
     result.value = data.markdown ?? ''
+    jobId.value = data.jobId ?? null
   } catch (e) {
     if (e instanceof Error) {
       if (e.name === 'AbortError') {
@@ -198,6 +342,7 @@ async function parsePdf() {
 function reset() {
   selectedFile.value = null
   result.value = null
+  jobId.value = null
   error.value = null
 }
 

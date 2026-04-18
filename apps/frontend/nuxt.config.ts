@@ -30,6 +30,10 @@ export default defineNuxtConfig({
         target: 'http://localhost:3111',
         changeOrigin: true,
         rewrite: (path: string) => path.replace(/^\/api/, '')
+      },
+      '/ws': {
+        target: 'http://localhost:3112',
+        ws: true
       }
     }
   },

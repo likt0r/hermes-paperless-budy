@@ -10,6 +10,7 @@ import { z } from 'zod'
 
 const bodySchema = z.object({
   pdf: z.string(),
+  paperlessDocumentId: z.number().int().positive().optional(),
 })
 
 export const config = {
@@ -23,25 +24,25 @@ export const config = {
       path: '/parse',
       bodySchema,
       responseSchema: {
-        200: z.object({ markdown: z.string() }),
+        200: z.object({ markdown: z.string(), jobId: z.string() }),
         400: z.object({ error: z.string() }),
         502: z.object({ error: z.string() }),
       },
     },
   ],
-  enqueues: [],
+  enqueues: ['document.parsed'],
 } as const satisfies StepConfig
 
 const DOCLING_URL = process.env.DOCLING_URL ?? 'http://localhost:5001'
 let configLogged = false
 
-export const handler: Handlers<typeof config> = async (request, { logger }) => {
+export const handler: Handlers<typeof config> = async (request, { logger, state, streams, enqueue }) => {
   if (!configLogged) {
     logger.info('ParseDocument config', { doclingUrl: DOCLING_URL })
     configLogged = true
   }
 
-  const { pdf: base64Pdf } = request.body
+  const { pdf: base64Pdf, paperlessDocumentId } = request.body
 
   let buffer: Buffer
   try {
@@ -103,8 +104,7 @@ export const handler: Handlers<typeof config> = async (request, { logger }) => {
     md_content?: string
   }
 
-  const raw =
-    data.document?.md_content ?? data.documents?.[0]?.md_content ?? data.md_content ?? ''
+  const raw = data.document?.md_content ?? data.documents?.[0]?.md_content ?? data.md_content ?? ''
 
   const markdown = raw
     .replace(/!\[[^\]]*\]\([^)]*\)\s*/g, '')
@@ -112,8 +112,13 @@ export const handler: Handlers<typeof config> = async (request, { logger }) => {
     .replace(/\n{3,}/g, '\n\n')
     .trim()
 
+  const jobId = crypto.randomUUID()
+  await state.set('extractions', jobId, { markdown, paperlessDocumentId })
+  await streams.extraction.set('jobs', jobId, { status: 'parsed' })
+  await enqueue({ topic: 'document.parsed', data: { jobId } })
+
   return {
     status: 200,
-    body: { markdown },
+    body: { markdown, jobId, metadata: { title: 'Test', summary: 'Test' } },
   }
 }
