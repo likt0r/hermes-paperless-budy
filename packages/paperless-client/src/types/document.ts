@@ -72,6 +72,7 @@ export interface DocumentUploadPayload {
 // Write format differs from read: tags accepts IDs, not full Tag objects
 export interface DocumentPatch {
   title?: string
+  content?: string
   correspondent?: number | null
   document_type?: number | null
   tags?: number[]

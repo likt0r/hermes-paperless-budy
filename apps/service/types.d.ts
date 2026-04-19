@@ -6,7 +6,7 @@ import { MotiaStream } from 'motia'
 
 declare module 'motia' {
   interface Streams {
-    extraction: MotiaStream<{ status: 'parsed' | 'summarizing' | 'summarized' | 'extracting' | 'done' | 'updating' | 'updated' | 'error'; error?: string; summary?: string; metadata?: { title: string | unknown; summary: string | unknown; tags: Array<string>; documentType: string | unknown; correspondent: string | unknown; documentDate: string | unknown; language: string | unknown } }>
+    extraction: MotiaStream<{ status: 'parsed' | 'summarizing' | 'summarized' | 'extracting' | 'done' | 'updating' | 'updated' | 'error'; error?: string; summary?: string; metadata?: { title: string | unknown; summary: string | unknown; tags: Array<string>; documentType: string | unknown; correspondent: string | unknown; documentDate: string | unknown; language: string | unknown }; createdAt?: string }>
   }
 
   interface Enqueues {}

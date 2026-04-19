@@ -8,11 +8,7 @@ loadEnv({ path: path.resolve(__dirname, '..', '..', '..', '.env') })
 import type { Handlers, StepConfig } from 'motia'
 import { z } from 'zod'
 import { paperlessClient } from '../../services/paperless.service.js'
-import {
-  buildIterativeSummary,
-  extractAll,
-  type ReferenceData,
-} from '../../services/metadata-extractor.js'
+import { buildIterativeSummary, extractAll, type ReferenceData } from '../../services/metadata-extractor.js'
 
 const documentParsedInput = z.object({
   jobId: z.string(),
@@ -27,6 +23,9 @@ export const config = {
       type: 'queue',
       topic: 'document.parsed',
       input: documentParsedInput,
+      infrastructure: {
+        queue: { type: 'fifo' },
+      },
     },
   ],
   enqueues: ['metadata.extracted'],

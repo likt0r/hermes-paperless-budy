@@ -17,7 +17,8 @@ export const config: StreamConfig = {
     status: z.enum(['parsed', 'summarizing', 'summarized', 'extracting', 'done', 'updating', 'updated', 'error']),
     error: z.string().optional(),
     summary: z.string().optional(),
-    metadata: metadataSchema.optional()
+    metadata: metadataSchema.optional(),
+    createdAt: z.string().optional()
   }),
   baseConfig: { storageType: 'default' }
 }

@@ -8,6 +8,7 @@ loadEnv({ path: path.resolve(__dirname, '..', '..', '..', '..', '.env') })
 import type { Handlers, StepConfig } from 'motia'
 import { z } from 'zod'
 import { paperlessClient } from '../../../services/paperless.service.js'
+import { convertPdfToMarkdown } from '../../../services/docling.service.js'
 import { PaperlessApiError } from '@repo/paperless-client'
 
 const bodySchema = z.object({
@@ -49,18 +50,36 @@ export const handler: Handlers<typeof config> = async (request, { logger, state,
     return { status: 502, body: { error: `Paperless error: ${message}` } }
   }
 
-  if (!doc.content?.trim()) {
-    return { status: 502, body: { error: `Document ${documentId} has no extractable content` } }
+  let pdfBuffer: Buffer
+  try {
+    pdfBuffer = await paperlessClient.documents.download(documentId)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error('AnalyzePaperlessDocument: failed to download PDF', { documentId, error: message })
+    return { status: 502, body: { error: `Paperless download error: ${message}` } }
+  }
+
+  let markdown: string
+  try {
+    markdown = await convertPdfToMarkdown(pdfBuffer)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    logger.error('AnalyzePaperlessDocument: Docling conversion failed', { documentId, error: message })
+    return { status: 502, body: { error: `Docling error: ${message}` } }
   }
 
   const jobId = crypto.randomUUID()
 
   await state.set('extractions', jobId, {
-    markdown: doc.content,
+    markdown,
     paperlessDocumentId: documentId,
   })
-  await streams.extraction.set('jobs', jobId, { status: 'parsed' })
-  await enqueue({ topic: 'document.parsed', data: { jobId } })
+  await streams.extraction.set('jobs', jobId, { status: 'parsed', createdAt: new Date().toISOString() })
+  await enqueue({
+    topic: 'document.parsed',
+    data: { jobId },
+    messageGroupId: 'summarize',
+  } as Parameters<typeof enqueue>[0] & { messageGroupId: string })
 
   logger.info('AnalyzePaperlessDocument: queued', { jobId, documentId, title: doc.title })
 

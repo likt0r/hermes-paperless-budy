@@ -13,6 +13,7 @@ import { updateDocumentType } from './document-types/update-document-type.js'
 import { deleteDocumentType } from './document-types/delete-document-type.js'
 import { bulkEditDocuments } from './documents/bulk-edit-documents.js'
 import { deleteDocument } from './documents/delete-document.js'
+import { downloadDocument } from './documents/download-document.js'
 import { getDocument } from './documents/get-document.js'
 import { listDocuments } from './documents/list-documents.js'
 import { updateDocument } from './documents/update-document.js'
@@ -77,6 +78,7 @@ export function createPaperlessClient(config: ClientConfig) {
         getDocument(config, id, options as never)) as DocumentsGetOverloads,
       upload: (payload: DocumentUploadPayload) => uploadDocument(config, payload),
       update: (id: number, patch: DocumentPatch) => updateDocument(config, id, patch),
+      download: (id: number) => downloadDocument(config, id),
       delete: (id: number) => deleteDocument(config, id),
       bulkEdit: (payload: BulkEditPayload) => bulkEditDocuments(config, payload),
     },

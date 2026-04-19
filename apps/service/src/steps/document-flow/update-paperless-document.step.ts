@@ -30,6 +30,7 @@ export const config = {
 
 type ExtractionState = {
   paperlessDocumentId?: number
+  markdown?: string
   metadata?: ExtractedMetadata
 }
 
@@ -47,7 +48,7 @@ export const handler: Handlers<typeof config> = async (input, { logger, state, s
     return
   }
 
-  const { paperlessDocumentId, metadata } = extractions
+  const { paperlessDocumentId, markdown, metadata } = extractions
 
   try {
     await streams.extraction.update('jobs', jobId, [{ type: 'set', path: 'status', value: 'updating' }])
@@ -77,6 +78,7 @@ export const handler: Handlers<typeof config> = async (input, { logger, state, s
 
     await paperlessClient.documents.update(paperlessDocumentId, {
       ...(metadata.title ? { title: metadata.title } : {}),
+      ...(markdown ? { content: markdown } : {}),
       ...(correspondentId !== null ? { correspondent: correspondentId } : {}),
       ...(documentTypeId !== null ? { document_type: documentTypeId } : {}),
       ...(tagIds.length > 0 ? { tags: tagIds } : {}),
@@ -93,6 +95,7 @@ export const handler: Handlers<typeof config> = async (input, { logger, state, s
     })
 
     await streams.extraction.update('jobs', jobId, [{ type: 'set', path: 'status', value: 'updated' }])
+    await state.delete('extractions', jobId)
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err)
     logger.error('UpdatePaperlessDocument failed', { jobId, paperlessDocumentId, error: message })
@@ -100,6 +103,7 @@ export const handler: Handlers<typeof config> = async (input, { logger, state, s
       { type: 'set', path: 'status', value: 'error' },
       { type: 'set', path: 'error', value: message },
     ])
+    await state.delete('extractions', jobId)
   }
 
   return undefined
