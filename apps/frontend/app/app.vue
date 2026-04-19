@@ -1,10 +1,10 @@
-<script setup>
+<script setup lang="ts">
 useHead({
   meta: [{ name: 'viewport', content: 'width=device-width, initial-scale=1' }],
   link: [{ rel: 'icon', href: '/favicon.ico' }],
   htmlAttrs: {
-    lang: 'en',
-  },
+    lang: 'en'
+  }
 })
 
 const title = 'Hermes Document Parser'
@@ -15,45 +15,58 @@ useSeoMeta({
   description,
   ogTitle: title,
   ogDescription: description,
-  twitterCard: 'summary',
+  twitterCard: 'summary'
 })
+
+const { items } = useAppNavigation()
 </script>
 
 <template>
   <UApp>
-    <UHeader>
-      <template #left>
-        <NuxtLink to="/" class="flex items-center gap-2">
-          <span class="font-bold">Hermes Document Parser</span>
-        </NuxtLink>
-      </template>
+    <UDashboardGroup>
+      <UDashboardSidebar
+        id="app-sidebar"
+        collapsible
+        resizable
+        :min-size="16"
+        :default-size="20"
+        :max-size="28"
+      >
+        <template #header>
+          <NuxtLink
+            to="/"
+            class="flex items-center gap-2 font-semibold"
+          >
+            <UIcon
+              name="i-lucide-file-text"
+              class="size-5 text-primary"
+            />
+            <span>Hermes</span>
+          </NuxtLink>
+        </template>
 
-      <template #right>
-        <nav class="flex items-center gap-2" aria-label="Header actions">
+        <template #default>
+          <UNavigationMenu
+            :items="items"
+            orientation="vertical"
+            class="w-full"
+          />
+        </template>
+
+        <template #footer>
           <ClientOnly>
             <UColorModeButton />
             <template #fallback>
               <div class="size-8" />
             </template>
           </ClientOnly>
-        </nav>
-      </template>
-    </UHeader>
+          <span class="text-xs text-muted ml-2">
+            © {{ new Date().getFullYear() }}
+          </span>
+        </template>
+      </UDashboardSidebar>
 
-    <UMain>
       <NuxtPage />
-    </UMain>
-
-    <USeparator icon="i-lucide-file-text" />
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">Hermes Document Parser • © {{ new Date().getFullYear() }}</p>
-      </template>
-
-      <template #right>
-        <span class="text-sm text-muted">Nuxt UI</span>
-      </template>
-    </UFooter>
+    </UDashboardGroup>
   </UApp>
 </template>

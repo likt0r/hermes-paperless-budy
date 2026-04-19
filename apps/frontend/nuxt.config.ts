@@ -20,18 +20,20 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { prerender: true },
-    '/api/**': { proxy: 'http://localhost:3111/**' }
+    '/': { redirect: '/analyze' },
+    // Backend service is proxied under /service/** so Nuxt-internal /api/** routes
+    // (e.g. /api/_nuxt_icon) remain handled by Nitro.
+    '/service/**': { proxy: 'http://localhost:3111/**' }
   },
 
   compatibilityDate: '2025-01-15',
 
   nitro: {
     devProxy: {
-      '/api': {
+      '/service': {
         target: 'http://localhost:3111',
         changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/api/, '')
+        rewrite: (path: string) => path.replace(/^\/service/, '')
       } as Record<string, unknown>
     }
   },
