@@ -11,6 +11,11 @@ const actionError = ref<string | null>(null)
 
 const { status, metadata, error: streamError } = useExtractionStream(jobId)
 
+const config = useRuntimeConfig()
+const paperlessDocumentUrl = computed(
+  () => `${config.public.paperlessBaseUrl}/documents/${props.document.id}/details/`
+)
+
 const isProcessing = computed(() => {
   if (triggering.value) return true
   if (!jobId.value) return false
@@ -89,23 +94,32 @@ async function updateInformation() {
 <template>
   <UCard class="h-full flex flex-col">
     <template #header>
-      <div class="flex items-start gap-3 min-w-0">
+      <a
+        :href="paperlessDocumentUrl"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="flex items-start gap-3 min-w-0 group"
+      >
         <UIcon
           name="i-lucide-file-text"
           class="size-5 text-primary mt-0.5 shrink-0"
         />
         <div class="min-w-0 flex-1">
-          <h3
-            class="font-semibold truncate"
+          <p
+            class="font-semibold truncate group-hover:underline"
             :title="document.title"
           >
             {{ document.title }}
-          </h3>
+          </p>
           <p class="text-xs text-muted truncate">
             #{{ document.id }} · {{ document.originalFileName }}
           </p>
         </div>
-      </div>
+        <UIcon
+          name="i-lucide-external-link"
+          class="size-4 text-muted shrink-0 mt-0.5 group-hover:text-white transition-colors"
+        />
+      </a>
     </template>
 
     <div class="space-y-4 flex-1">

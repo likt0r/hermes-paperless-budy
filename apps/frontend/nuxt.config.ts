@@ -15,7 +15,9 @@ export default defineNuxtConfig({
   runtimeConfig: {
     public: {
       /** Motia / iii stream WebSocket URL (see apps/service iii-config STREAMS_PORT default 3112) */
-      streamWsUrl: process.env.NUXT_PUBLIC_STREAM_WS_URL || 'ws://localhost:3112'
+      streamWsUrl: process.env.NUXT_PUBLIC_STREAM_WS_URL || 'ws://localhost:3112',
+      /** Paperless-ngx base URL — overridden by NUXT_PUBLIC_PAPERLESS_BASE_URL at runtime */
+      paperlessBaseUrl: 'http://localhost:8000'
     }
   },
 
