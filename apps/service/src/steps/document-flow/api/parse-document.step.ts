@@ -60,11 +60,7 @@ export const handler: Handlers<typeof config> = async (request, { logger, state,
   const jobId = crypto.randomUUID()
   await state.set('extractions', jobId, { markdown, paperlessDocumentId })
   await streams.extraction.set('jobs', jobId, { status: 'parsed', createdAt: new Date().toISOString() })
-  await enqueue({
-    topic: 'document.parsed',
-    data: { jobId },
-    messageGroupId: 'summarize',
-  } as Parameters<typeof enqueue>[0] & { messageGroupId: string })
+  await enqueue({ topic: 'document.parsed', data: { jobId } })
 
   return { status: 200, body: { markdown, jobId } }
 }

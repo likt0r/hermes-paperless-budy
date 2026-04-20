@@ -75,11 +75,7 @@ export const handler: Handlers<typeof config> = async (request, { logger, state,
     paperlessDocumentId: documentId,
   })
   await streams.extraction.set('jobs', jobId, { status: 'parsed', createdAt: new Date().toISOString() })
-  await enqueue({
-    topic: 'document.parsed',
-    data: { jobId },
-    messageGroupId: 'summarize',
-  } as Parameters<typeof enqueue>[0] & { messageGroupId: string })
+  await enqueue({ topic: 'document.parsed', data: { jobId } })
 
   logger.info('AnalyzePaperlessDocument: queued', { jobId, documentId, title: doc.title })
 

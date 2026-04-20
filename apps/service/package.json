@@ -9,17 +9,17 @@
   },
   "dependencies": {
     "@repo/paperless-client": "workspace:*",
-    "dotenv": "^16.4.5",
+    "dotenv": "^17.4.2",
     "i": "^0.3.7",
-    "motia": "1.0.0-rc.24",
+    "motia": "1.0.4-rc.1",
     "ollama": "^0.6.3",
     "zod": "^4.1.13"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
-    "@types/node": "^24.10.1",
-    "eslint": "^9.0.0",
-    "typescript": "^5.9.3"
+    "@types/node": "^24.12.2",
+    "eslint": "^10.2.1",
+    "typescript": "^6.0.3"
   }
 }

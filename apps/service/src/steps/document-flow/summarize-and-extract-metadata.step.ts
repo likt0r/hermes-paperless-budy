@@ -23,9 +23,7 @@ export const config = {
       type: 'queue',
       topic: 'document.parsed',
       input: documentParsedInput,
-      infrastructure: {
-        queue: { type: 'fifo' },
-      },
+      config: { type: 'fifo' },
     },
   ],
   enqueues: ['metadata.extracted'],
