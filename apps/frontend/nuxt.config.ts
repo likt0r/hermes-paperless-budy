@@ -13,32 +13,24 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    redisUrl: 'redis://localhost:6379',
+    doclingUrl: 'http://localhost:5001',
+    ollamaUrl: 'http://localhost:11434',
+    ollamaModel: 'ministral-3:8b',
+    ollamaTemperature: '0.15',
+    paperlessUrl: '',
+    paperlessToken: '',
     public: {
-      /** Motia / iii stream WebSocket URL (see apps/service iii-config STREAMS_PORT default 3112) */
-      streamWsUrl: process.env.NUXT_PUBLIC_STREAM_WS_URL || 'ws://localhost:3112',
-      /** Paperless-ngx base URL — overridden by NUXT_PUBLIC_PAPERLESS_BASE_URL at runtime */
       paperlessBaseUrl: 'http://localhost:8000'
     }
   },
 
   routeRules: {
     '/': { redirect: '/analyze' },
-    // Backend service is proxied under /service/** so Nuxt-internal /api/** routes
-    // (e.g. /api/_nuxt_icon) remain handled by Nitro.
-    '/service/**': { proxy: 'http://localhost:3111/**' }
+    '/socket.io/**': { ssr: false }
   },
 
   compatibilityDate: '2025-01-15',
-
-  nitro: {
-    devProxy: {
-      '/service': {
-        target: 'http://localhost:3111',
-        changeOrigin: true,
-        rewrite: (path: string) => path.replace(/^\/service/, '')
-      } as Record<string, unknown>
-    }
-  },
 
   eslint: {
     config: {

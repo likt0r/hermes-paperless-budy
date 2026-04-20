@@ -1,0 +1,40 @@
+services:
+  frontend:
+    image: ghcr.io/${GHCR_OWNER}/hermes-frontend:${IMAGE_TAG:-latest}
+    ports:
+      - "3000:3000"
+    environment:
+      NUXT_REDIS_URL: redis://redis:6379
+      NUXT_DOCLING_URL: http://docling:5001
+      NUXT_OLLAMA_URL: ${NUXT_OLLAMA_URL}
+      NUXT_OLLAMA_MODEL: ${NUXT_OLLAMA_MODEL:-ministral-3b:8b}
+      NUXT_OLLAMA_TEMPERATURE: ${NUXT_OLLAMA_TEMPERATURE:-0.15}
+      NUXT_PAPERLESS_URL: ${NUXT_PAPERLESS_URL}
+      NUXT_PAPERLESS_TOKEN: ${NUXT_PAPERLESS_TOKEN}
+      NUXT_PUBLIC_PAPERLESS_BASE_URL: ${NUXT_PUBLIC_PAPERLESS_BASE_URL}
+    depends_on:
+      - redis
+      - docling
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+
+  docling:
+    image: quay.io/docling-project/docling-serve
+    ports:
+      - "5001:5001"
+    environment:
+      DOCLING_SERVE_ENABLE_UI: "1"
+      UVICORN_WORKERS: "1"
+    volumes:
+      - docling-models:/opt/app-root/src/.cache
+    restart: unless-stopped
+
+volumes:
+  redis-data:
+  docling-models:

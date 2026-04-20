@@ -46,7 +46,7 @@ export function usePaperlessDocuments(initial: ListQuery = {}) {
     return out
   })
 
-  const { data, pending, error, refresh } = useFetch<PaperlessDocumentsResponse>('/service/paperless/documents', {
+  const { data, pending, error, refresh } = useFetch<PaperlessDocumentsResponse>('/api/paperless/documents', {
     query: params,
     server: false,
     lazy: true

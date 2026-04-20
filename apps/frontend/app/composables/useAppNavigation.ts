@@ -15,6 +15,11 @@ export function useAppNavigation() {
       label: 'Paperless Documents',
       icon: 'i-lucide-library',
       to: '/paperless-documents'
+    },
+    {
+      label: 'Running Jobs',
+      icon: 'i-lucide-activity',
+      to: '/jobs'
     }
   ]
 

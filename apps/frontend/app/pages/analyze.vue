@@ -7,7 +7,7 @@ const error = ref<string | null>(null)
 const result = ref<string | null>(null)
 const jobId = ref<string | null>(null)
 
-const { status: extractionStatus, metadata: extractionMetadata, summary: extractionSummary, error: extractionError } = useExtractionStream(jobId)
+const { status: extractionStatus, metadata: extractionMetadata, summary: extractionSummary, error: extractionError } = useJobStatus(jobId)
 
 const extractionStatusLabel = computed(() => {
   switch (extractionStatus.value) {
@@ -72,7 +72,7 @@ async function parsePdf() {
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), PARSE_TIMEOUT_MS)
 
-    const res = await fetch('/service/parse', {
+    const res = await fetch('/api/parse', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ pdf: base64 }),
@@ -101,7 +101,7 @@ async function parsePdf() {
         error.value = e.message
       }
     } else {
-      error.value = 'Network or server error. Ensure the backend is running on port 3111.'
+      error.value = 'Network or server error.'
     }
   } finally {
     loading.value = false

@@ -5,11 +5,24 @@ const props = defineProps<{
   document: PaperlessDocumentSummary
 }>()
 
-const jobId = ref<string | null>(null)
+const globalJobs = useGlobalJobs()
+
+const internalJobId = ref<string | null>(null)
 const triggering = ref(false)
 const actionError = ref<string | null>(null)
 
-const { status, metadata, error: streamError } = useExtractionStream(jobId)
+const latestJob = computed(() => {
+  const jobsForDoc = Object.values(globalJobs.value).filter(
+    job => job.paperlessDocumentId === props.document.id
+  )
+  if (jobsForDoc.length === 0) return null
+  jobsForDoc.sort((a, b) => (b.timestamp ?? 0) - (a.timestamp ?? 0))
+  return jobsForDoc[0]
+})
+
+const jobId = computed(() => internalJobId.value ?? latestJob.value?.jobId ?? null)
+
+const { status, metadata, error: streamError } = useJobStatus(jobId)
 
 const config = useRuntimeConfig()
 const paperlessDocumentUrl = computed(
@@ -70,7 +83,7 @@ async function updateInformation() {
   actionError.value = null
 
   try {
-    const res = await fetch('/service/analyze', {
+    const res = await fetch('/api/analyze', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ documentId: props.document.id })
@@ -82,7 +95,7 @@ async function updateInformation() {
       return
     }
 
-    jobId.value = data.jobId ?? null
+    internalJobId.value = data.jobId ?? null
   } catch (e) {
     actionError.value = e instanceof Error ? e.message : 'Network error contacting service'
   } finally {
