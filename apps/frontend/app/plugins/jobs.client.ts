@@ -15,7 +15,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   }
 
   // Socket connection
-  const socket = io({ path: '/socket.io', transports: ['websocket'] })
+  const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'] })
 
   // Listen for global job status updates
   socket.on('job:status', (update: JobState) => {
