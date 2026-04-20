@@ -9,7 +9,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository_owner }}/hermes-meta-doc
+  IMAGE_NAME: ${{ github.repository_owner }}/hermes-paperless-budy
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
