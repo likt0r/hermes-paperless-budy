@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.4](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.3...v0.2.4) (2026-04-21)
+
+### Bug Fixes
+
+* improve request body handling in analyze endpoint ([516e313](https://github.com/likt0r/hermes-paperless-budy/commit/516e3137ffa3e9ee9c5ebdbf0193f881c5257c64))
+
 ## [0.2.3](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.2...v0.2.3) (2026-04-21)
 
 ### Bug Fixes
