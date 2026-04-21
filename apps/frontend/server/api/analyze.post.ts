@@ -5,13 +5,22 @@ import { broadcastJobStatus } from '../services/ws'
 import { PaperlessApiError } from '@repo/paperless-client'
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ documentId?: number }>(event)
+  const body = await readBody<{ documentId?: number, documentUrl?: string }>(event)
 
-  if (!body?.documentId || !Number.isInteger(body.documentId) || body.documentId <= 0) {
-    throw createError({ statusCode: 400, statusMessage: 'Missing or invalid documentId' })
+  let documentId: number
+
+  if (body?.documentUrl) {
+    const match = body.documentUrl.match(/\/documents\/(\d+)/)
+    const extracted = match?.[1] ? parseInt(match[1], 10) : NaN
+    if (!Number.isFinite(extracted) || extracted <= 0) {
+      throw createError({ statusCode: 400, statusMessage: 'Could not extract a valid document ID from documentUrl' })
+    }
+    documentId = extracted
+  } else if (body?.documentId && Number.isInteger(body.documentId) && body.documentId > 0) {
+    documentId = body.documentId
+  } else {
+    throw createError({ statusCode: 400, statusMessage: 'Provide either documentId or a valid documentUrl' })
   }
-
-  const { documentId } = body
   const paperless = getPaperlessClient()
 
   let doc: Awaited<ReturnType<typeof paperless.documents.get>>
