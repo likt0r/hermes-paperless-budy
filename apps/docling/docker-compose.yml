@@ -6,6 +6,7 @@ services:
     environment:
       - DOCLING_SERVE_ENABLE_UI=1
       - UVICORN_WORKERS=1
+      - DOCLING_SERVE_MAX_SYNC_WAIT=600
     volumes:
       - docling-models:/opt/app-root/src/.cache
 

@@ -20,6 +20,11 @@ export function useAppNavigation() {
       label: 'Running Jobs',
       icon: 'i-lucide-activity',
       to: '/jobs'
+    },
+    {
+      label: 'Settings',
+      icon: 'i-lucide-settings',
+      to: '/settings'
     }
   ]
 

@@ -4,6 +4,7 @@ import type { Redis } from 'ioredis'
 import { broadcastJobStatus } from '../services/ws'
 import { buildIterativeSummary, extractAll } from '../services/metadata-extractor'
 import { getPaperlessClient } from '../services/paperless'
+import { convertPdfToMarkdown } from '../services/docling'
 import type { DocumentProcessingJobData } from '../queues/document-processing'
 import type { ExtractedMetadata } from '../services/metadata-extractor'
 
@@ -13,7 +14,8 @@ export function createDocumentWorker(connection: Redis): Worker<DocumentProcessi
   const worker = new Worker<DocumentProcessingJobData>(
     'document-processing',
     async (job) => {
-      const { markdown, paperlessDocumentId } = job.data
+      let markdown = job.data.markdown
+      const { paperlessDocumentId } = job.data
       const jobId = job.id!
 
       const setStatus = async (status: string, data?: object) => {
@@ -22,6 +24,15 @@ export function createDocumentWorker(connection: Redis): Worker<DocumentProcessi
       }
 
       try {
+        if (!markdown) {
+          if (!paperlessDocumentId) throw new Error('Job has neither markdown nor paperlessDocumentId')
+          await setStatus('parsing')
+          const paperlessForDownload = getPaperlessClient()
+          const pdfBuffer = await paperlessForDownload.documents.download(paperlessDocumentId)
+          markdown = await convertPdfToMarkdown(pdfBuffer)
+          await setStatus('parsed')
+        }
+
         await setStatus('summarizing')
 
         const paperless = getPaperlessClient()
@@ -76,7 +87,7 @@ export function createDocumentWorker(connection: Redis): Worker<DocumentProcessi
 
   worker.on('active', (job) => {
     logger.info(
-      `[${job.id}] started (paperlessId=${job.data.paperlessDocumentId ?? 'none'}, markdown=${job.data.markdown.length} chars)`
+      `[${job.id}] started (paperlessId=${job.data.paperlessDocumentId ?? 'none'}, markdown=${job.data.markdown?.length ?? 'pending'} chars)`
     )
   })
   worker.on('completed', (job) => {

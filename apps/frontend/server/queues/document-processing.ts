@@ -2,7 +2,7 @@ import { Queue } from 'bullmq'
 import type { Redis } from 'ioredis'
 
 export interface DocumentProcessingJobData {
-  markdown: string
+  markdown?: string
   paperlessDocumentId?: number
 }
 
