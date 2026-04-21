@@ -31,6 +31,13 @@ services:
     environment:
       DOCLING_SERVE_ENABLE_UI: "1"
       UVICORN_WORKERS: "1"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
     volumes:
       - docling-models:/opt/app-root/src/.cache
     restart: unless-stopped
