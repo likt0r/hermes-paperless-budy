@@ -1,5 +1,7 @@
 # Changelog
 
+## [0.2.5](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.4...v0.2.5) (2026-04-21)
+
 ## [0.2.4](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.3...v0.2.4) (2026-04-21)
 
 ### Bug Fixes
