@@ -1,16 +1,16 @@
-FROM oven/bun:1.3.9-alpine AS pruner
+FROM node:22-alpine AS pruner
 WORKDIR /repo
-RUN bun add -g turbo@2.8.14
+RUN npm install -g pnpm@10.30.3 turbo@2.8.14
 COPY . .
 RUN turbo prune frontend --docker
 
-FROM oven/bun:1.3.9-alpine AS builder
+FROM node:22-alpine AS builder
 WORKDIR /repo
+RUN npm install -g pnpm@10.30.3
 COPY --from=pruner /repo/out/json/ .
-COPY --from=pruner /repo/out/bun.lock ./bun.lock
-RUN bun install
+RUN pnpm install --frozen-lockfile
 COPY --from=pruner /repo/out/full/ .
-RUN bun run build --filter=frontend
+RUN pnpm run build --filter=frontend
 
 FROM node:22-alpine AS runner
 WORKDIR /app

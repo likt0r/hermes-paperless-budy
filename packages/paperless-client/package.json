@@ -9,12 +9,13 @@
   "scripts": {
     "lint": "eslint .",
     "check-types": "tsc --noEmit",
-    "test": "bun --env-file=.env scripts/test-client.ts"
+    "test": "tsx --env-file=.env scripts/test-client.ts"
   },
   "devDependencies": {
     "@repo/eslint-config": "workspace:*",
     "@repo/typescript-config": "workspace:*",
     "eslint": "^9.0.0",
+    "tsx": "^4.19.3",
     "typescript": "^5.9.2"
   }
 }

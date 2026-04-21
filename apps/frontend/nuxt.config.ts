@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   modules: ['@nuxt/eslint', '@nuxt/ui', '@nuxt/icon'],
 
   devtools: {
-    enabled: true,
+    enabled: true
   },
 
   css: ['~/assets/css/main.css'],
@@ -17,13 +17,18 @@ export default defineNuxtConfig({
     paperlessUrl: '',
     paperlessToken: '',
     public: {
-      paperlessBaseUrl: 'http://localhost:8000',
-    },
+      paperlessBaseUrl: 'http://localhost:8000'
+    }
   },
 
   routeRules: {
-    '/': { redirect: '/analyze' },
-    '/socket.io/**': { ssr: false },
+    '/': { redirect: '/analyze' }
+  },
+
+  nitro: {
+    experimental: {
+      websocket: true
+    }
   },
 
   compatibilityDate: '2025-01-15',
@@ -32,15 +37,15 @@ export default defineNuxtConfig({
     config: {
       stylistic: {
         commaDangle: 'never',
-        braceStyle: '1tbs',
-      },
-    },
+        braceStyle: '1tbs'
+      }
+    }
   },
 
   icon: {
     clientBundle: {
       scan: true,
-      sizeLimitKb: 256,
-    },
-  },
+      sizeLimitKb: 256
+    }
+  }
 })

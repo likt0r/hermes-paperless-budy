@@ -15,7 +15,7 @@ Add the package to any workspace that needs it:
 }
 ```
 
-Then run `bun install` from the monorepo root.
+Then run `pnpm install` from the monorepo root.
 
 ## Usage
 
@@ -301,7 +301,7 @@ Copy the env example, fill in your credentials, and run:
 cd packages/paperless-client
 cp .env.example .env
 # edit .env: set PAPERLESS_URL and PAPERLESS_TOKEN
-bun run test
+pnpm run test
 ```
 
 The script exercises every resource group and prints pass/fail for each call.

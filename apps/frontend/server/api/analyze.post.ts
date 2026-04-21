@@ -1,7 +1,7 @@
 import { getDocumentProcessingQueue } from '../queues/document-processing'
 import { convertPdfToMarkdown } from '../services/docling'
 import { getPaperlessClient } from '../services/paperless'
-import { emitJobStatus } from '../services/socket'
+import { broadcastJobStatus } from '../services/ws'
 import { PaperlessApiError } from '@repo/paperless-client'
 
 export default defineEventHandler(async (event) => {
@@ -33,30 +33,33 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, statusMessage: `Paperless download error: ${message}` })
   }
 
-  let markdown: string
-  try {
-    markdown = await convertPdfToMarkdown(pdfBuffer)
-  } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    throw createError({ statusCode: 502, statusMessage: `Docling error: ${message}` })
-  }
-
   const queue = getDocumentProcessingQueue()
   const existingJobs = await queue.getJobs(['active', 'waiting', 'delayed'])
   for (const existing of existingJobs) {
     if (existing.data.paperlessDocumentId === documentId) {
-      emitJobStatus(existing.id!, 'error', { error: 'Superseded by new analysis' }, documentId)
+      broadcastJobStatus(existing.id!, 'error', { error: 'Superseded by new analysis' }, documentId)
       try { await existing.remove() } catch { /* active jobs cannot be removed mid-run */ }
     }
   }
 
   const jobId = crypto.randomUUID()
+  broadcastJobStatus(jobId, 'parsing', {}, documentId)
+
+  let markdown: string
+  try {
+    markdown = await convertPdfToMarkdown(pdfBuffer)
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err)
+    broadcastJobStatus(jobId, 'error', { error: message }, documentId)
+    throw createError({ statusCode: 502, statusMessage: `Docling error: ${message}` })
+  }
+
   await queue.add(
     'process',
     { markdown, paperlessDocumentId: documentId },
     { jobId },
   )
-  emitJobStatus(jobId, 'parsed', {}, documentId)
+  broadcastJobStatus(jobId, 'parsed', {}, documentId)
 
   return { jobId, title: doc.title }
 })

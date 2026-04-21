@@ -1,38 +1,27 @@
-import { io, type Socket } from 'socket.io-client'
 import type { JobState } from '../composables/useGlobalJobs'
 
-export default defineNuxtPlugin(async (nuxtApp) => {
+export default defineNuxtPlugin(() => {
   const jobs = useGlobalJobs()
 
-  // Fetch initial active jobs
-  try {
-    const data = await $fetch<JobState[]>('/api/jobs')
-    for (const job of data) {
-      jobs.value[job.jobId] = job
-    }
-  } catch (err) {
-    console.error('Failed to fetch initial jobs:', err)
+  const url = new URL('/_ws', window.location.href)
+  url.protocol = url.protocol.replace('http', 'ws')
+  const ws = new WebSocket(url.href)
+
+  ws.onmessage = (event) => {
+    const msg = JSON.parse(event.data)
+    if (msg.type !== 'job:status' || !msg.jobId) return
+    const { type: _type, ...update } = msg as { type: string } & JobState
+    jobs.value[update.jobId] = jobs.value[update.jobId]
+      ? { ...jobs.value[update.jobId], ...update }
+      : { timestamp: Date.now(), ...update }
   }
 
-  // Socket connection
-  const socket = io({ path: '/socket.io', transports: ['websocket', 'polling'] })
+  // Non-blocking — does not delay page render
+  $fetch<JobState[]>('/api/jobs')
+    .then((data) => { for (const job of data) jobs.value[job.jobId] = job })
+    .catch((err) => console.error('Failed to fetch initial jobs:', err))
 
-  // Listen for global job status updates
-  socket.on('job:status', (update: JobState) => {
-    if (!update.jobId) return
-
-    // Update or merge the job state
-    if (jobs.value[update.jobId]) {
-      jobs.value[update.jobId] = { ...jobs.value[update.jobId], ...update }
-    } else {
-      jobs.value[update.jobId] = { timestamp: Date.now(), ...update }
-    }
-  })
-
-  // Provide the socket to the rest of the app if needed
   return {
-    provide: {
-      socket
-    }
+    provide: { ws }
   }
 })

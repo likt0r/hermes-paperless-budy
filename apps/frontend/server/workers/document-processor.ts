@@ -1,7 +1,7 @@
 import { consola } from 'consola'
 import { Worker } from 'bullmq'
 import type { Redis } from 'ioredis'
-import { emitJobStatus } from '../services/socket'
+import { broadcastJobStatus } from '../services/ws'
 import { buildIterativeSummary, extractAll } from '../services/metadata-extractor'
 import { getPaperlessClient } from '../services/paperless'
 import type { DocumentProcessingJobData } from '../queues/document-processing'
@@ -17,7 +17,7 @@ export function createDocumentWorker(connection: Redis): Worker<DocumentProcessi
       const jobId = job.id!
 
       const setStatus = async (status: string, data?: object) => {
-        emitJobStatus(jobId, status, data, paperlessDocumentId)
+        broadcastJobStatus(jobId, status, data, paperlessDocumentId)
         await job.updateProgress({ status, ...data })
       }
 
@@ -84,7 +84,7 @@ export function createDocumentWorker(connection: Redis): Worker<DocumentProcessi
   })
   worker.on('failed', (job, err) => {
     logger.error(`[${job?.id ?? '?'}] failed: ${err.message}`)
-    if (job?.id) emitJobStatus(job.id, 'error', { error: err.message }, job.data?.paperlessDocumentId)
+    if (job?.id) broadcastJobStatus(job.id, 'error', { error: err.message }, job.data?.paperlessDocumentId)
   })
 
   return worker

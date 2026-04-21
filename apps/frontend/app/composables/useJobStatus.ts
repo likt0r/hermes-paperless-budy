@@ -1,7 +1,8 @@
 import type { Ref } from 'vue'
-import type { JobState } from './useGlobalJobs'
+
 
 export type JobStatus =
+  | 'parsing'
   | 'parsed'
   | 'summarizing'
   | 'summarized'
@@ -45,13 +46,9 @@ export function useJobStatus(jobId: Ref<string | null> | string) {
     if (!newId || import.meta.server) return
     if (!globalJobs.value[newId]) {
       const nuxtApp = useNuxtApp()
-      const socket = nuxtApp.$socket as any
-      if (socket) {
-        socket.emit('get-initial-status', newId, (update: any) => {
-          if (update && update.status !== 'unknown') {
-            globalJobs.value[newId] = { jobId: newId, ...update }
-          }
-        })
+      const ws = nuxtApp.$ws as WebSocket | undefined
+      if (ws?.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ type: 'get-initial-status', jobId: newId }))
       }
     }
   }, { immediate: true })
