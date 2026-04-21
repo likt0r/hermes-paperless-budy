@@ -1,11 +1,14 @@
+import { consola } from 'consola'
 import { getDocumentProcessingQueue } from '../queues/document-processing'
 import { convertPdfToMarkdown } from '../services/docling'
 import { getPaperlessClient } from '../services/paperless'
 import { broadcastJobStatus } from '../services/ws'
 import { PaperlessApiError } from '@repo/paperless-client'
 
+const logger = consola.withTag('analyze')
+
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ documentId?: number, documentUrl?: string }>(event)
+  const body = await readBody<{ documentId?: number; documentUrl?: string }>(event)
 
   let documentId: number
 
@@ -21,6 +24,9 @@ export default defineEventHandler(async (event) => {
   } else {
     throw createError({ statusCode: 400, statusMessage: 'Provide either documentId or a valid documentUrl' })
   }
+
+  logger.info(`documentId=${documentId}${body?.documentUrl ? ` (from url: ${body.documentUrl})` : ''}`)
+
   const paperless = getPaperlessClient()
 
   let doc: Awaited<ReturnType<typeof paperless.documents.get>>
@@ -47,7 +53,11 @@ export default defineEventHandler(async (event) => {
   for (const existing of existingJobs) {
     if (existing.data.paperlessDocumentId === documentId) {
       broadcastJobStatus(existing.id!, 'error', { error: 'Superseded by new analysis' }, documentId)
-      try { await existing.remove() } catch { /* active jobs cannot be removed mid-run */ }
+      try {
+        await existing.remove()
+      } catch {
+        /* active jobs cannot be removed mid-run */
+      }
     }
   }
 
@@ -63,11 +73,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 502, statusMessage: `Docling error: ${message}` })
   }
 
-  await queue.add(
-    'process',
-    { markdown, paperlessDocumentId: documentId },
-    { jobId },
-  )
+  await queue.add('process', { markdown, paperlessDocumentId: documentId }, { jobId })
   broadcastJobStatus(jobId, 'parsed', {}, documentId)
 
   return { jobId, title: doc.title }
