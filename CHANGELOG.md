@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.3](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.2...v0.2.3) (2026-04-21)
+
+### Bug Fixes
+
+* enhance document ID handling in analyze endpoint ([3084fa7](https://github.com/likt0r/hermes-paperless-budy/commit/3084fa7857d210b8c6bd8aaa04139380f6156121))
+
 ## [0.2.2](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.1...v0.2.2) (2026-04-21)
 
 ## [0.2.1](https://github.com/likt0r/hermes-paperless-budy/compare/v0.2.0...v0.2.1) (2026-04-21)
