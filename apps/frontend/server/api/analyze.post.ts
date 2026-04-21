@@ -8,7 +8,7 @@ import { PaperlessApiError } from '@repo/paperless-client'
 const logger = consola.withTag('analyze')
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ documentId?: number; documentUrl?: string }>(event)
+  const body = await readBody<{ id?: number; documentId?: number; documentUrl?: string }>(event)
 
   let documentId: number
 
@@ -16,13 +16,17 @@ export default defineEventHandler(async (event) => {
     const match = body.documentUrl.match(/\/documents\/(\d+)/)
     const extracted = match?.[1] ? parseInt(match[1], 10) : NaN
     if (!Number.isFinite(extracted) || extracted <= 0) {
+      logger.error(`Could not extract a valid document ID from documentUrl: ${body.documentUrl}`)
       throw createError({ statusCode: 400, statusMessage: 'Could not extract a valid document ID from documentUrl' })
     }
     documentId = extracted
   } else if (body?.documentId && Number.isInteger(body.documentId) && body.documentId > 0) {
     documentId = body.documentId
+  } else if (body?.id && Number.isInteger(body.id) && body.id > 0) {
+    documentId = body.id
   } else {
-    throw createError({ statusCode: 400, statusMessage: 'Provide either documentId or a valid documentUrl' })
+    logger.error(`No valid document ID provided: ${JSON.stringify(body)}`)
+    throw createError({ statusCode: 400, statusMessage: 'Provide either id, documentId, or a valid documentUrl' })
   }
 
   logger.info(`documentId=${documentId}${body?.documentUrl ? ` (from url: ${body.documentUrl})` : ''}`)
