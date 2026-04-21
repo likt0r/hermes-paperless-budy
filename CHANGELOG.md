@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.2.0](https://github.com/likt0r/hermes-paperless-budy/compare/v0.1.1...v0.2.0) (2026-04-21)
+
+### Features
+
+* add settings page and reanalysis functionality ([110f6af](https://github.com/likt0r/hermes-paperless-budy/commit/110f6afa30b11b14dbb6e4f2d7b436b40532ef5e))
+
 ## [0.1.1](https://github.com/likt0r/hermes-paperless-budy/compare/v0.1.0...v0.1.1) (2026-04-21)
 
 ## 0.1.0 (2026-04-20)
