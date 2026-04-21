@@ -8,7 +8,8 @@ import { PaperlessApiError } from '@repo/paperless-client'
 const logger = consola.withTag('analyze')
 
 export default defineEventHandler(async (event) => {
-  const body = await readBody<{ id?: number; documentId?: number; documentUrl?: string }>(event)
+  const raw = await readBody<{ id?: number, documentId?: number, documentUrl?: string } | string>(event)
+  const body = typeof raw === 'string' ? JSON.parse(raw) as { id?: number, documentId?: number, documentUrl?: string } : raw
 
   let documentId: number
 
